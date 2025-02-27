@@ -1,0 +1,15 @@
+# Ignore virtual environments
+venv/
+env/
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+.vscode/
+# Ignore databases (if using SQLite)
+*.sqlite3
+*.db
+
+
+gas_model.joblib
+steam_model.joblib

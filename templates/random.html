@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="static\css\style.css" />
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <title>Gas and Steam Turbine Prediction</title>
+  </head>
+  <body>
+    <h2>Sensor Values</h2>
+    <div class="values">
+      <div class="gas">
+        <h3>Gas Turbine Input:</h3>
+        <p>Temperature (°C): <span id="CT_gas"></span></p>
+        <p>Exhaust Vacuum (Pa): <span id="V_gas"></span></p>
+        <p>Ambient Pressure (Pa): <span id="AP_gas"></span></p>
+        <p>Relative Humidity (%): <span id="RH_gas"></span></p>
+        <p>RPM GAS: <span id="RPM_GAS_gas"></span></p>
+        <p>Exhaust Temperature (°C): <span id="EX_TEMP_gas"></span></p>
+        <p>Predicted Gas EP: <span id="predicted_ep_gas"></span></p>
+      </div>
+
+      <div class="steam">
+        <h3>Steam Turbine Input:</h3>
+        <p>RPM steam: <span id="RPM_STEAM"></span></p>
+        <p>Steam Pressure (Pa): <span id="STEAM_PRESSURE"></span></p>
+        <p>Water flow rate (kg/s): <span id="WATER_FR"></span></p>
+        <p>Predicted Steam EP: <span id="predicted_ep_steam"></span></p>
+      </div>
+    </div>
+
+    <button id="startButton" onclick="startGenerating()">
+      Start Generating
+    </button>
+    <button id="stopButton" style="display: none" onclick="stopGenerating()">
+      Stop Generating
+    </button>
+    <button id="anomaly">Anomaly Tester</button>
+
+    <h2>Gas and Steam Predictions</h2>
+    <div class="customs">
+      <div class="gas-custom">
+        <h3>Predict Gas</h3>
+        <form id="gas-input-form">
+          <label for="ct">Temperature (°C):</label>
+          <input type="number" step="any" id="ct" name="ct" required /><br />
+
+          <label for="v">Exhaust Vacuum (Pa):</label>
+          <input type="number" step="any" id="v" name="v" required /><br />
+
+          <label for="ap">Ambient Pressure (Pa):</label>
+          <input type="number" step="any" id="ap" name="ap" required /><br />
+
+          <label for="rh">Relative Humidity (%):</label>
+          <input type="number" step="any" id="rh" name="rh" required /><br />
+
+          <label for="rpm_gas">RPM Gas:</label>
+          <input
+            type="number"
+            step="any"
+            id="rpm_gas"
+            name="rpm_gas"
+            required
+          /><br />
+
+          <label for="ex_temp_gas">Exhaust Temperature (°C):</label>
+          <input
+            type="number"
+            step="any"
+            id="ex_temp_gas"
+            name="ex_temp_gas"
+            required
+          /><br />
+
+          <button type="button" onclick="predictGas()">Predict Gas EP</button>
+        </form>
+        <div id="display-outputs">
+          <h3>Predicted Gas EP: <span id="display-gas"></span></h3>
+        </div>
+      </div>
+
+      <div class="steam-custom">
+        <h3>Predict Steam</h3>
+        <form id="steam-input-form">
+          <label for="ex_temp_steam">Exhaust Temperature (°C):</label>
+          <input
+            type="number"
+            step="any"
+            id="ex_temp_steam"
+            name="ex_temp_steam"
+            required
+          /><br />
+
+          <label for="rpm_steam">RPM Steam:</label>
+          <input
+            type="number"
+            step="any"
+            id="rpm_steam"
+            name="rpm_steam"
+            required
+          /><br />
+
+          <label for="steam_pressure">Steam Pressure (Pa):</label>
+          <input
+            type="number"
+            step="any"
+            id="steam_pressure"
+            name="steam_pressure"
+            required
+          /><br />
+
+          <label for="water_fr">Water Flow Rate (kg/s):</label>
+          <input
+            type="number"
+            step="any"
+            id="water_fr"
+            name="water_fr"
+            required
+          /><br />
+
+          <button type="button" onclick="predictSteam()">
+            Predict Steam EP
+          </button>
+        </form>
+        <div id="display-outputs">
+          <h3>Predicted Steam EP: <span id="display-steam"></span></h3>
+        </div>
+      </div>
+    </div>
+
+    <div id="graph">
+      <h2>GRAPH PLOTTER</h2>
+      <div class="user-input">
+        <label for="y-axis-parameter-select">Parameter for Y-axis:</label>
+        <select id="y-axis-parameter-select">
+          <option value="CT_gas">Gas Temperature (°C)</option>
+          <option value="V_gas">Exhaust Vacuum (Pa)</option>
+          <option value="AP_gas">Ambient Pressure(Pa)</option>
+          <option value="RH_gas">Relative Humidity</option>
+          <option value="RPM_GAS_gas">RPM Gas</option>
+          <option value="EX_TEMP_gas">Exhaust Gas Temperature</option>
+          <option value="RPM_STEAM">RPM Steam</option>
+          <option value="STEAM_PRESSURE">Steam Pressure</option>
+          <option value="WATER_FR">Water flow rate</option>
+          <option value="predicted_ep_gas">Gas Power</option>
+          <option value="predicted_ep_steam">Steam Power</option>
+          <option value="time">Time</option>
+        </select>
+        <br />
+
+        <label for="x-axis-parameter-select">Parameter for X-axis:</label>
+        <select id="x-axis-parameter-select">
+          <option value="CT_gas">Gas Temperature (°C)</option>
+          <option value="V_gas">Exhaust Vacuum (Pa)</option>
+          <option value="AP_gas">Ambient Pressure(Pa)</option>
+          <option value="RH_gas">Relative Humidity</option>
+          <option value="RPM_GAS_gas">RPM Gas</option>
+          <option value="EX_TEMP_gas">Exhaust Gas Temperature</option>
+          <option value="RPM_STEAM">RPM Steam</option>
+          <option value="STEAM_PRESSURE">Steam Pressure</option>
+          <option value="WATER_FR">Water flow rate</option>
+          <option value="predicted_ep_gas">Gas Power</option>
+          <option value="predicted_ep_steam">Steam Power</option>
+          <option value="time">Time</option>
+        </select>
+        <br />
+        <button type="button" id="plotgraph">Plot Graph</button>
+      </div>
+
+      <div id="generated_graph">
+        <div id="temperatureGraph"></div>
+      </div>
+    </div>
+
+    <script>
+      let intervalId;
+      let continueGenerating;
+      let gograph = false;
+      let xValues = [];
+      let yValues = [];
+
+      function createGraph() {
+        clearInterval(intervalId);
+        xValues = [];
+        yValues = [];
+        console.log("xP:", xP);
+        console.log("yP:", yP);
+        gograph = true;
+        const xParameterSelect = document.getElementById(
+          "x-axis-parameter-select"
+        );
+        const xParameter =
+          xParameterSelect.options[xParameterSelect.selectedIndex].textContent;
+        const yParameterSelect = document.getElementById(
+          "y-axis-parameter-select"
+        );
+        const yParameter =
+          yParameterSelect.options[yParameterSelect.selectedIndex].textContent;
+
+        const layout = {
+          title: `${yParameter} vs. ${xParameter}`,
+          xaxis: {
+            title: xParameter,
+
+            showline: true,
+            linecolor: "black",
+          },
+          yaxis: {
+            title: yParameter,
+
+            showline: true,
+            linecolor: "black",
+          },
+          hovermode: "x",
+          hovermode: "y",
+          font: { size: 10 },
+          scrollZoom: true,
+        };
+
+        const trace = {
+          x: [],
+          y: [],
+          mode: "lines+markers",
+          type: "scatter",
+          marker: {
+            color: "black",
+          },
+          line: {
+            color: "blue",
+          },
+        };
+
+        const data = [trace];
+        Plotly.newPlot(
+          "temperatureGraph",
+          data,
+          layout,
+          { displayModeBar: false },
+        );
+      }
+
+      document
+        .getElementById("plotgraph")
+        .addEventListener("click", function () {
+          xP = document.getElementById("x-axis-parameter-select").value;
+          yP = document.getElementById("y-axis-parameter-select").value;
+          createGraph();
+        });
+
+      document
+        .getElementById("startButton")
+        .addEventListener("click", startGenerating);
+      document
+        .getElementById("stopButton")
+        .addEventListener("click", stopGenerating);
+
+      function startGenerating() {
+        document.getElementById("startButton").style.display = "none";
+        document.getElementById("stopButton").style.display = "inline-block";
+        continueGenerating = true;
+
+        xP = document.getElementById("x-axis-parameter-select").value;
+        yP = document.getElementById("y-axis-parameter-select").value;
+
+        function generateAndDisplay(xP, yP) {
+          if (!continueGenerating) return;
+
+          fetch("/predict", {
+            method: "POST",
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log(data);
+
+              if (gograph) {
+                if (xP === "time") {
+                  const currentTime = new Date().toLocaleTimeString();
+                  xValues.push(currentTime);
+                } else {
+                  xValues.push(data[xP]);
+                }
+
+                if (yP === "time") {
+                  const currentTime = new Date().toLocaleTimeString();
+                  yValues.push(currentTime);
+                } else {
+                  yValues.push(data[yP]);
+                }
+
+                const update = {
+                  x: [xValues],
+                  y: [yValues],
+                };
+
+                Plotly.update("temperatureGraph", update);
+              }
+              document.getElementById("CT_gas").textContent =
+                data.CT_gas !== undefined ? data.CT_gas.toFixed(2) : "N/A";
+              document.getElementById("V_gas").textContent =
+                data.V_gas !== undefined ? data.V_gas.toFixed(2) : "N/A";
+              document.getElementById("AP_gas").textContent =
+                data.AP_gas !== undefined ? data.AP_gas.toFixed(2) : "N/A";
+              document.getElementById("RH_gas").textContent =
+                data.RH_gas !== undefined ? data.RH_gas.toFixed(2) : "N/A";
+              document.getElementById("RPM_GAS_gas").textContent =
+                data.RPM_GAS_gas !== undefined
+                  ? data.RPM_GAS_gas.toFixed(2)
+                  : "N/A";
+              document.getElementById("EX_TEMP_gas").textContent =
+                data.EX_TEMP_gas !== undefined
+                  ? data.EX_TEMP_gas.toFixed(2)
+                  : "N/A";
+              document.getElementById("predicted_ep_gas").textContent =
+                data.predicted_ep_gas !== undefined
+                  ? data.predicted_ep_gas.toFixed(2)
+                  : "N/A";
+
+              document.getElementById("RPM_STEAM").textContent =
+                data.RPM_STEAM !== undefined
+                  ? data.RPM_STEAM.toFixed(2)
+                  : "N/A";
+              document.getElementById("STEAM_PRESSURE").textContent =
+                data.STEAM_PRESSURE !== undefined
+                  ? data.STEAM_PRESSURE.toFixed(2)
+                  : "N/A";
+              document.getElementById("WATER_FR").textContent =
+                data.WATER_FR !== undefined ? data.WATER_FR.toFixed(2) : "N/A";
+              document.getElementById("predicted_ep_steam").textContent =
+                data.predicted_ep_steam !== undefined
+                  ? data.predicted_ep_steam.toFixed(2)
+                  : "N/A";
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        }
+
+        function generateAndDisplayWrapper() {
+          generateAndDisplay(xP, yP);
+        }
+        generateAndDisplayWrapper();
+        intervalId = setInterval(generateAndDisplayWrapper, 2000);
+      }
+
+      function stopGenerating() {
+        document.getElementById("startButton").style.display = "inline-block";
+        document.getElementById("stopButton").style.display = "none";
+
+        clearInterval(intervalId);
+        xValues = [];
+        yValues = [];
+
+        continueGenerating = false;
+      }
+
+      document
+        .getElementById("startButton")
+        .addEventListener("click", startGenerating);
+      document
+        .getElementById("stopButton")
+        .addEventListener("click", stopGenerating);
+      document.getElementById("anomaly").addEventListener("click", function () {
+        window.location.href = "http://localhost:5000/anomaly";
+      });
+
+      function predictGas() {
+        const ct = parseFloat(document.getElementById("ct").value);
+        const v = parseFloat(document.getElementById("v").value);
+        const ap = parseFloat(document.getElementById("ap").value);
+        const rh = parseFloat(document.getElementById("rh").value);
+        const rpmGas = parseFloat(document.getElementById("rpm_gas").value);
+        const exTempGas = parseFloat(
+          document.getElementById("ex_temp_gas").value
+        );
+
+        fetch("/predict_gas_custom", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ct,
+            v,
+            ap,
+            rh,
+            rpm_gas: rpmGas,
+            ex_temp_gas: exTempGas,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById(
+              "display-gas"
+            ).innerHTML = `${data.predicted_gas_ep.toFixed(2)} MW`;
+          });
+      }
+
+      function predictSteam() {
+        const exTempSteam = parseFloat(
+          document.getElementById("ex_temp_steam").value
+        );
+        const rpmSteam = parseFloat(document.getElementById("rpm_steam").value);
+        const steamPressure = parseFloat(
+          document.getElementById("steam_pressure").value
+        );
+        const waterFr = parseFloat(document.getElementById("water_fr").value);
+
+        fetch("/predict_steam_custom", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ex_temp: exTempSteam,
+            rpm_steam: rpmSteam,
+            steam_pressure: steamPressure,
+            water_fr: waterFr,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById(
+              "display-steam"
+            ).innerHTML = `${data.predicted_steam_ep.toFixed(2)} MW`;
+          });
+      }
+    </script>
+  </body>
+</html>

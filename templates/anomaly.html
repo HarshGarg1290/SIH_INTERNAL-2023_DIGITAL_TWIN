@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="static\css\style3.css" />
+    <title>Gas and Steam Turbine Anomaly Tester</title>
+  </head>
+  <body>
+    <h1>
+      <b><u>Gas and Steam Turbine Anomaly Tester</u></b>
+    </h1>
+
+    <h2>Randomly Generated Input Values</h2>
+    <div class="values">
+      <div class="gas-values">
+        <h3>Gas Turbine Input:</h3>
+        <p>Combustion Temperature (°C): <span id="CT_gas"></span></p>
+        <p>Exhaust Vacuum (Pascal): <span id="V_gas"></span></p>
+        <p>Ambient Pressure (Pascal): <span id="AP_gas"></span></p>
+        <p>Relative Humidity (%): <span id="RH_gas"></span></p>
+        <p>RPM GAS turbine (RPM): <span id="RPM_GAS_gas"></span></p>
+        <p>Exhaust Temperature (°C): <span id="EX_TEMP_gas"></span></p>
+        <p>Gas Power: <span id="POWER_1"></span> MW</p>
+        <u
+          ><p>Predicted Gas EP: <span id="predicted_ep_gas"></span> MW</p></u
+        >
+      </div>
+      <div class="steam-values">
+        <h3>Steam Turbine Input:</h3>
+        <p>RPM steam turbine (RPM): <span id="RPM_STEAM"></span></p>
+        <p>Steam Pressure (Pascal): <span id="STEAM_PRESSURE"></span></p>
+        <p>Water flow rate (kg/s): <span id="WATER_FR"></span></p>
+        <p>Steam Power: <span id="POWER_2"></span> MW</p>
+        <u
+          ><p>
+            Predicted Steam EP: <span id="predicted_ep_steam"></span> MW
+          </p></u
+        >
+      </div>
+    </div>
+
+    <button id="startButton">Start Generating</button>
+    <button id="stopButton" style="display: none">Stop Generating</button>
+
+    <div class="image">
+      <img src="static\images\main.jpg" style="height: 400px; width: 750px" />
+    </div>
+
+    <script>
+      let intervalId;
+
+      // Function to start generating random input and output
+      function startGenerating() {
+        // Hide the start button and show the stop button
+        document.getElementById("startButton").style.display = "none";
+        document.getElementById("stopButton").style.display = "inline-block";
+
+        // Function to make a request to the Flask server and update values
+        function generateAndDisplay() {
+          fetch("/predict_anomaly", {
+            method: "POST",
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              // Display the randomly generated input values and predictions
+              console.log(data);
+              document.getElementById("CT_gas").textContent =
+                data.CT_gas !== undefined ? data.CT_gas.toFixed(2) : "N/A";
+              document.getElementById("V_gas").textContent =
+                data.V_gas !== undefined ? data.V_gas.toFixed(2) : "N/A";
+              document.getElementById("AP_gas").textContent =
+                data.AP_gas !== undefined ? data.AP_gas.toFixed(2) : "N/A";
+              document.getElementById("RH_gas").textContent =
+                data.RH_gas !== undefined ? data.RH_gas.toFixed(2) : "N/A";
+              document.getElementById("RPM_GAS_gas").textContent =
+                data.RPM_GAS_gas !== undefined
+                  ? data.RPM_GAS_gas.toFixed(2)
+                  : "N/A";
+              document.getElementById("EX_TEMP_gas").textContent =
+                data.EX_TEMP_gas !== undefined
+                  ? data.EX_TEMP_gas.toFixed(2)
+                  : "N/A";
+              document.getElementById("POWER_1").textContent =
+                data.POWER_1 !== undefined ? data.POWER_1.toFixed(2) : "N/A";
+
+              document.getElementById("predicted_ep_gas").textContent =
+                data.predicted_ep_gas !== undefined
+                  ? data.predicted_ep_gas.toFixed(2)
+                  : "N/A";
+
+              document.getElementById("RPM_STEAM").textContent =
+                data.RPM_STEAM !== undefined
+                  ? data.RPM_STEAM.toFixed(2)
+                  : "N/A";
+              document.getElementById("STEAM_PRESSURE").textContent =
+                data.STEAM_PRESSURE !== undefined
+                  ? data.STEAM_PRESSURE.toFixed(2)
+                  : "N/A";
+              document.getElementById("WATER_FR").textContent =
+                data.WATER_FR !== undefined ? data.WATER_FR.toFixed(2) : "N/A";
+              document.getElementById("POWER_2").textContent =
+                data.POWER_2 !== undefined ? data.POWER_2.toFixed(2) : "N/A";
+              document.getElementById("predicted_ep_steam").textContent =
+                data.predicted_ep_steam !== undefined
+                  ? data.predicted_ep_steam.toFixed(2)
+                  : "N/A";
+
+              if (data.anomaly_gas) {
+                setTimeout(() => {
+                  alert(
+                    "Anomaly detected in Gas Turbine! Auto-shutdown initiated."
+                  );
+                  stopGenerating();
+                }, 100);
+              }
+              if (data.anomaly_steam) {
+                setTimeout(() => {
+                  alert(
+                    "Anomaly detected in Steam Turbine! Auto-shutdown initiated."
+                  );
+                  stopGenerating();
+                }, 100);
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        }
+
+        // Set an interval to call the function every, for example, 2000 milliseconds (2 seconds)
+        intervalId = setInterval(generateAndDisplay, 1000);
+      }
+
+      // Function to stop generating
+      function stopGenerating() {
+        // Show the start button and hide the stop button
+        document.getElementById("startButton").style.display = "inline-block";
+        document.getElementById("stopButton").style.display = "none";
+
+        // Clear the interval to stop generating
+        clearInterval(intervalId);
+      }
+
+      // Add click event listeners to the buttons
+      document
+        .getElementById("startButton")
+        .addEventListener("click", startGenerating);
+      document
+        .getElementById("stopButton")
+        .addEventListener("click", stopGenerating);
+    </script>
+  </body>
+</html>
